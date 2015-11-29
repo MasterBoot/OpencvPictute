@@ -20,18 +20,17 @@ static CvHaarClassifierCascade* cascade = 0;
 
 void detect_and_draw(IplImage* image);
 
-const char* cascade_name =
-"haarcascade_frontalface_alt.xml";
+const char* cascade_name ="haarcascade_frontalface_alt.xml";
 /*    "haarcascade_profileface.xml";*/
 
 int main(int argc, char** argv)
 {
-	cascade_name = "haarcascade_frontalface_alt2.xml";
+	//cascade_name = "haarcascade_frontalface_alt.xml";
 	cascade = (CvHaarClassifierCascade*)cvLoad(cascade_name, 0, 0, 0);
 
 	if (!cascade)
 	{
-		fprintf(stderr, "ERROR: Could not load classifier cascade\n");
+		fprintf(stderr, "错误，未能加载人脸数据文件\n");
 		return -1;
 	}
 	storage = cvCreateMemStorage(0);
