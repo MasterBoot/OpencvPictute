@@ -54,6 +54,7 @@ int main( int argc, char** argv )
 void detect_and_draw(IplImage* img ) 
 { 
     double scale=0.8; //缩放因子，图片缩小检测提高检测速度
+	/*face.jpg共有75张人脸*/
     static CvScalar colors[] = { 
         {0,0,255},{0,128,255},{0,255,255},{0,255,0}, 
         {255,128,0},{255,255,0},{255,0,0},{255,0,255} 
