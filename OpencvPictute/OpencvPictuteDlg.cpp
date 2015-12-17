@@ -163,6 +163,7 @@ void detect_and_draw(IplImage* img )
 
     //Loop through found objects and draw boxes around them 
 	int faceCount;
+	CString strCount;
     for(int i=0;i<(objects? objects->total:0);++i) 
     { 
         CvRect* r=(CvRect*)cvGetSeqElem(objects,i); 
@@ -180,8 +181,8 @@ void detect_and_draw(IplImage* img )
         cvCircle( img, center, radius, colors[i%8], 1, 8, 0 );
 		faceCount = i;
     }
-
-	printf("已经检测到的人脸个数为：%d个\n", faceCount);
+	strCount.Format(L"已经检测到的人脸个数为：%d个", faceCount);
+	MessageBox(strCount);
     cvShowImage( "窗口", img ); //显示结果窗口
     cvReleaseImage(&gray); //显示图像
     cvReleaseImage(&small_img); 
