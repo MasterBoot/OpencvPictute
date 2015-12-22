@@ -104,26 +104,28 @@ static CvMemStorage* storage = 0;
 static CvHaarClassifierCascade* cascade = 0;
 
 void detect_and_draw( IplImage* image );
-
-const char* cascade_name = 
-"haarcascade_frontalface_alt.xml"; 
-
+void DetectAndMark();
+const char *pcascadeName = "D:\\Opencv3.0\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+const char *pImageName = "face.jpg";
 
 void COpencvPictuteDlg::OnBnClickedButton1()
 {
-	cascade_name = "haarcascade_frontalface_alt2.xml"; 
-    cascade = (CvHaarClassifierCascade*)cvLoad( cascade_name, 0, 0, 0 ); 
+	
+	/*cascade = (CvHaarClassifierCascade*)cvLoad(pcascadeName, 0, 0, 0);
     if( !cascade ) 
     { 
         fprintf( stderr, "ERROR: Could not load classifier cascade\n" ); 
        // return -1; 
-    } 
-    storage = cvCreateMemStorage(0); 
-    cvNamedWindow( "窗口", 1 ); 
+    }*/
+	//CvHaarClassifierCascade *pHaarClassCascade;
+	//pHaarClassCascade = (CvHaarClassifierCascade*)cvLoad(pcascadeName);
+
+   // storage = cvCreateMemStorage(0); 
+   // cvNamedWindow( "窗口", 1 ); 
      
-    const char* filename = "face.jpg"; 
+    //const char* filename = "face.jpg"; 
 	//cvSize(img->width, img->height)
-    IplImage* image = cvLoadImage( filename, 1 );
+	/*IplImage* image = cvLoadImage(pImageName, 1);
     if( image ) 
     { 
         detect_and_draw( image ); 
@@ -131,7 +133,9 @@ void COpencvPictuteDlg::OnBnClickedButton1()
         cvReleaseImage( &image );   
     }
 
-    cvDestroyWindow("窗口"); 
+    cvDestroyWindow("窗口"); */
+
+	DetectAndMark();
 }
 
 void detect_and_draw(IplImage* img ) 
@@ -182,8 +186,74 @@ void detect_and_draw(IplImage* img )
 		faceCount = i;
     }
 	strCount.Format(L"已经检测到的人脸个数为：%d个", faceCount);
-	MessageBox(strCount);
+	//MessageBox(strCount);
     cvShowImage( "窗口", img ); //显示结果窗口
     cvReleaseImage(&gray); //显示图像
     cvReleaseImage(&small_img); 
+}
+
+void DetectAndMark()
+{
+	// load the Haar classifier    
+	CvHaarClassifierCascade *pHaarClassCascade;
+	pHaarClassCascade = (CvHaarClassifierCascade*)cvLoad(pcascadeName);
+
+	//load the test image    
+	IplImage *pSrcImage = cvLoadImage(pImageName, CV_LOAD_IMAGE_UNCHANGED);
+	IplImage *pGrayImage = cvCreateImage(cvGetSize(pSrcImage), IPL_DEPTH_8U, 1);
+	if (pSrcImage == NULL || pGrayImage == NULL)
+	{
+		printf("can't load image!\n");
+		return;
+	}
+	cvCvtColor(pSrcImage, pGrayImage, CV_BGR2GRAY);
+
+	if (pHaarClassCascade != NULL && pSrcImage != NULL && pGrayImage != NULL)
+	{
+		const static CvScalar colors[] =
+		{
+			CV_RGB(0, 0, 255),
+			CV_RGB(0, 128, 255),
+			CV_RGB(0, 255, 255),
+			CV_RGB(0, 255, 0),
+			CV_RGB(255, 128, 0),
+			CV_RGB(255, 255, 0),
+			CV_RGB(255, 0, 0),
+			CV_RGB(255, 0, 255)
+		};
+
+		CvMemStorage *pcvMemStorage = cvCreateMemStorage(0);
+		cvClearMemStorage(pcvMemStorage);
+
+		//detect the face    
+		int TimeStart, TimeEnd;
+		TimeStart = GetTickCount();
+		CvSeq *pcvSeqFaces = cvHaarDetectObjects(pGrayImage, pHaarClassCascade, pcvMemStorage);
+		TimeEnd = GetTickCount();
+
+		printf("the number of faces: %d\nSpending Time: %d ms\n", pcvSeqFaces->total, TimeEnd - TimeStart);
+
+		//mark the face     
+		for (int i = 0; i <pcvSeqFaces->total; i++)
+		{
+			CvRect* r = (CvRect*)cvGetSeqElem(pcvSeqFaces, i);
+			CvPoint center;
+			int radius;
+			center.x = cvRound((r->x + r->width * 0.5));
+			center.y = cvRound((r->y + r->height * 0.5));
+			radius = cvRound((r->width + r->height) * 0.25);
+			cvCircle(pSrcImage, center, radius, colors[i % 8], 2);
+		}
+		cvReleaseMemStorage(&pcvMemStorage);
+	}
+
+	const char *pstrWindowsTitle = "FaceDetect Demo";
+	cvNamedWindow(pstrWindowsTitle, CV_WINDOW_AUTOSIZE);
+	cvShowImage(pstrWindowsTitle, pSrcImage);
+
+	cvWaitKey(0);
+
+	cvDestroyWindow(pstrWindowsTitle);
+	cvReleaseImage(&pSrcImage);
+	cvReleaseImage(&pGrayImage);
 }
