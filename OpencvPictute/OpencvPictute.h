@@ -11,7 +11,7 @@
 #include "resource.h"		// 主符号
 
 
-// COpencvPictuteApp:
+// COpencvPictuteApp: 
 // 有关此类的实现，请参阅 OpencvPictute.cpp
 //
 

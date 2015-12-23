@@ -1,7 +1,8 @@
 
 // OpencvPictuteDlg.h : 头文件
 //
-
+#include "cv.h" 
+#include "highgui.h"
 #pragma once
 
 
@@ -17,7 +18,7 @@ public:
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
-
+	void detect_and_draw(IplImage* image);
 
 // 实现
 protected:
@@ -29,5 +30,5 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedRun();
 };

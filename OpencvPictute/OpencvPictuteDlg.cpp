@@ -8,25 +8,12 @@
 #include "afxdialogex.h"
 #include "cv.h" 
 #include "highgui.h"
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <assert.h> 
-#include <math.h> 
-#include <float.h> 
-#include <limits.h> 
-#include <time.h> 
-#include <ctype.h>
-#include<opencv2\core\core.hpp>
-#include<opencv2\imgproc\imgproc.hpp>
-#include<opencv2\highgui\highgui.hpp>
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 
 // COpencvPictuteDlg 对话框
-
 
 
 
@@ -44,7 +31,7 @@ void COpencvPictuteDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(COpencvPictuteDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_BUTTON1, &COpencvPictuteDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_RUN, &COpencvPictuteDlg::OnBnClickedRun)
 END_MESSAGE_MAP()
 
 
@@ -54,18 +41,18 @@ BOOL COpencvPictuteDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
+	// 设置此对话框的图标。  当应用程序主窗口不是对话框时，框架将自动
 	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	// TODO: 在此添加额外的初始化代码
+	// TODO:  在此添加额外的初始化代码
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
 // 如果向对话框添加最小化按钮，则需要下面的代码
-//  来绘制该图标。对于使用文档/视图模型的 MFC 应用程序，
+//  来绘制该图标。  对于使用文档/视图模型的 MFC 应用程序，
 //  这将由框架自动完成。
 
 void COpencvPictuteDlg::OnPaint()
@@ -100,160 +87,87 @@ HCURSOR COpencvPictuteDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-static CvMemStorage* storage = 0; 
+static CvMemStorage* storage = 0;
 static CvHaarClassifierCascade* cascade = 0;
 
-void detect_and_draw( IplImage* image );
-void DetectAndMark();
-const char *pcascadeName = "D:\\Opencv3.0\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
-const char *pImageName = "face.jpg";
+const char* cascade_name =
+"haarcascade_frontalface_alt.xml";
 
-void COpencvPictuteDlg::OnBnClickedButton1()
+void COpencvPictuteDlg::OnBnClickedRun()
 {
-	
-	/*cascade = (CvHaarClassifierCascade*)cvLoad(pcascadeName, 0, 0, 0);
-    if( !cascade ) 
-    { 
-        fprintf( stderr, "ERROR: Could not load classifier cascade\n" ); 
-       // return -1; 
-    }*/
-	//CvHaarClassifierCascade *pHaarClassCascade;
-	//pHaarClassCascade = (CvHaarClassifierCascade*)cvLoad(pcascadeName);
-
-   // storage = cvCreateMemStorage(0); 
-   // cvNamedWindow( "窗口", 1 ); 
-     
-    //const char* filename = "face.jpg"; 
-	//cvSize(img->width, img->height)
-	/*IplImage* image = cvLoadImage(pImageName, 1);
-    if( image ) 
-    { 
-        detect_and_draw( image ); 
-        cvWaitKey(0); 
-        cvReleaseImage( &image );   
-    }
-
-    cvDestroyWindow("窗口"); */
-
-	DetectAndMark();
-}
-
-void detect_and_draw(IplImage* img ) 
-{ 
-    double scale=0.8; //缩放因子，图片缩小检测提高检测速度
-	/*face.jpg共有75张人脸*/
-    static CvScalar colors[] = { 
-        (0,0,255),(0,128,255),(0,255,255),(0,255,0), 
-        (255,128,0),(255,255,0),(255,0,0),(255,0,255) 
-    };//Just some pretty colors to draw with
-
-    //Image Preparation 
-    // 
-    IplImage* gray = cvCreateImage(cvSize(img->width,img->height),8,1); 
-    IplImage* small_img=cvCreateImage(cvSize(cvRound(img->width/scale),cvRound(img->height/scale)),8,1); 
-    cvCvtColor(img,gray, CV_BGR2GRAY); 
-    cvResize(gray, small_img, CV_INTER_LINEAR);
-
-    cvEqualizeHist(small_img,small_img); //直方图均衡
-
-    //Detect objects if any 
-    // 
-    cvClearMemStorage(storage); 
-    double t = (double)cvGetTickCount(); 
-    CvSeq* objects = cvHaarDetectObjects(small_img, cascade,storage,1.1,2,0,cvSize(30,30));
-
-    t = (double)cvGetTickCount() - t; 
-    printf( "detection time = %gms\n", t/((double)cvGetTickFrequency()*1000) );
-
-    //Loop through found objects and draw boxes around them 
-	int faceCount;
-	CString strCount;
-    for(int i=0;i<(objects? objects->total:0);++i) 
-    { 
-        CvRect* r=(CvRect*)cvGetSeqElem(objects,i); 
-        cvRectangle(img, cvPoint(r->x*scale,r->y*scale), cvPoint((r->x+r->width)*scale,(r->y+r->height)*scale), colors[i%8]); 
-    } 
-    for( int i = 0; i < (objects? objects->total : 0); i++ ) //i为检测到人脸的数量
-    { 
-        CvRect* r = (CvRect*)cvGetSeqElem( objects, i ); 
-        CvPoint center; 
-        int radius; 
-        center.x = cvRound((r->x + r->width*0.5)*scale); //获取圆心X坐标
-        center.y = cvRound((r->y + r->height*0.5)*scale);//获取圆心Y坐标 
-        radius = cvRound((r->width + r->height)*0.25*scale); //获取半径
- //对img脸部进行圆圈标注。参数为：图像，圆心坐标，圆心半径，线条颜色，线条粗细负数表示填充元，线条类型，圆心坐标点和半径值的小数点位数
-        cvCircle( img, center, radius, colors[i%8], 1, 8, 0 );
-		faceCount = i;
-    }
-	strCount.Format(L"已经检测到的人脸个数为：%d个", faceCount);
-	//MessageBox(strCount);
-    cvShowImage( "窗口", img ); //显示结果窗口
-    cvReleaseImage(&gray); //显示图像
-    cvReleaseImage(&small_img); 
-}
-
-void DetectAndMark()
-{
-	// load the Haar classifier    
-	CvHaarClassifierCascade *pHaarClassCascade;
-	pHaarClassCascade = (CvHaarClassifierCascade*)cvLoad(pcascadeName);
-
-	//load the test image    
-	IplImage *pSrcImage = cvLoadImage(pImageName, CV_LOAD_IMAGE_UNCHANGED);
-	IplImage *pGrayImage = cvCreateImage(cvGetSize(pSrcImage), IPL_DEPTH_8U, 1);
-	if (pSrcImage == NULL || pGrayImage == NULL)
+	//cascade_name = "haarcascade_frontalface_alt2.xml";
+	cascade = (CvHaarClassifierCascade*)cvLoad(cascade_name, 0, 0, 0);
+	if (!cascade)
 	{
-		printf("can't load image!\n");
+		MessageBox(L"没有找到人脸训练器文件");
 		return;
 	}
-	cvCvtColor(pSrcImage, pGrayImage, CV_BGR2GRAY);
+	storage = cvCreateMemStorage(0);
+	cvNamedWindow("人脸识别", 1);
 
-	if (pHaarClassCascade != NULL && pSrcImage != NULL && pGrayImage != NULL)
+	const char* filename = "last2.jpg";
+	IplImage* image = cvLoadImage(filename, 1);
+	if (image)
 	{
-		const static CvScalar colors[] =
-		{
-			CV_RGB(0, 0, 255),
-			CV_RGB(0, 128, 255),
-			CV_RGB(0, 255, 255),
-			CV_RGB(0, 255, 0),
-			CV_RGB(255, 128, 0),
-			CV_RGB(255, 255, 0),
-			CV_RGB(255, 0, 0),
-			CV_RGB(255, 0, 255)
-		};
-
-		CvMemStorage *pcvMemStorage = cvCreateMemStorage(0);
-		cvClearMemStorage(pcvMemStorage);
-
-		//detect the face    
-		int TimeStart, TimeEnd;
-		TimeStart = GetTickCount();
-		CvSeq *pcvSeqFaces = cvHaarDetectObjects(pGrayImage, pHaarClassCascade, pcvMemStorage);
-		TimeEnd = GetTickCount();
-
-		printf("the number of faces: %d\nSpending Time: %d ms\n", pcvSeqFaces->total, TimeEnd - TimeStart);
-
-		//mark the face     
-		for (int i = 0; i <pcvSeqFaces->total; i++)
-		{
-			CvRect* r = (CvRect*)cvGetSeqElem(pcvSeqFaces, i);
-			CvPoint center;
-			int radius;
-			center.x = cvRound((r->x + r->width * 0.5));
-			center.y = cvRound((r->y + r->height * 0.5));
-			radius = cvRound((r->width + r->height) * 0.25);
-			cvCircle(pSrcImage, center, radius, colors[i % 8], 2);
-		}
-		cvReleaseMemStorage(&pcvMemStorage);
+		detect_and_draw(image);
+		cvWaitKey(0);
+		cvReleaseImage(&image);
 	}
 
-	const char *pstrWindowsTitle = "FaceDetect Demo";
-	cvNamedWindow(pstrWindowsTitle, CV_WINDOW_AUTOSIZE);
-	cvShowImage(pstrWindowsTitle, pSrcImage);
+	cvDestroyWindow("人脸识别");
 
-	cvWaitKey(0);
+	return;
 
-	cvDestroyWindow(pstrWindowsTitle);
-	cvReleaseImage(&pSrcImage);
-	cvReleaseImage(&pGrayImage);
+}
+void COpencvPictuteDlg::detect_and_draw(IplImage* img)
+{
+	double scale = 0.7; //缩放因子，图片缩小检测提高检测速度
+	static CvScalar colors[] = {
+		{ 0, 0, 255 }, { 0, 128, 255 }, { 0, 255, 255 }, { 0, 255, 0 },
+		{ 255, 128, 0 }, { 255, 255, 0 }, { 255, 0, 0 }, { 255, 0, 255 }
+	};//Just some pretty colors to draw with
+
+	//Image Preparation 
+	// 
+	IplImage* gray = cvCreateImage(cvSize(img->width, img->height), 8, 1);
+	IplImage* small_img = cvCreateImage(cvSize(cvRound(img->width / scale), cvRound(img->height / scale)), 8, 1);
+	cvCvtColor(img, gray, CV_BGR2GRAY);
+	cvResize(gray, small_img, CV_INTER_LINEAR);
+
+	cvEqualizeHist(small_img, small_img); //直方图均衡
+
+	//Detect objects if any 
+	// 
+	cvClearMemStorage(storage);
+	double t = (double)cvGetTickCount();
+	CvSeq* objects = cvHaarDetectObjects(small_img, cascade, storage, 1.1, 2, 0, cvSize(30, 30));
+	t = (double)cvGetTickCount() - t;
+	//printf("detection time = %gms\n", t / ((double)cvGetTickFrequency() * 1000));
+	//Loop through found objects and draw boxes around them 
+	for (int i = 0; i<(objects ? objects->total : 0); ++i)
+	{
+		CvRect* r = (CvRect*)cvGetSeqElem(objects, i);
+		cvRectangle(img, cvPoint(r->x*scale, r->y*scale), cvPoint((r->x + r->width)*scale, (r->y + r->height)*scale), colors[i % 8]);
+	}
+	int i;
+	CString str;
+	for (i = 0; i < (objects ? objects->total : 0); i++)
+	{
+		CvRect* r = (CvRect*)cvGetSeqElem(objects, i);
+		CvPoint center;
+		int radius;
+		center.x = cvRound((r->x + r->width*0.5)*scale); //获取圆心X坐标
+		center.y = cvRound((r->y + r->height*0.5)*scale);//获取圆心Y坐标 
+		radius = cvRound((r->width + r->height)*0.25*scale); //获取半径
+		//对img脸部进行圆圈标注。参数为：图像，圆心坐标，圆心半径，线条颜色，线条粗细负数表示填充元，线条类型，圆心坐标点和半径值的小数点位数
+		cvCircle(img, center, radius, colors[i % 8], 1, 8, 0);
+	}
+	str.Format(L"一共检测到%d张人脸,耗时%g毫秒", i, t / ((double)cvGetTickFrequency() * 1000));
+	cvShowImage("人脸识别", img); //显示结果窗口
+	cvReleaseImage(&gray); //显示图像
+	cvReleaseImage(&small_img);
+	this->ShowWindow(SW_HIDE);
+	MessageBox(str);
+
+
 }
