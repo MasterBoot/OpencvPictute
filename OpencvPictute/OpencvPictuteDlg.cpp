@@ -105,7 +105,7 @@ void COpencvPictuteDlg::OnBnClickedRun()
 	storage = cvCreateMemStorage(0);
 	cvNamedWindow("ÈËÁ³Ê¶±ð", 1);
 
-	const char* filename = "last2.jpg";
+	const char* filename = "1.jpg";
 	IplImage* image = cvLoadImage(filename, 1);
 	if (image)
 	{
