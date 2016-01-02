@@ -19,6 +19,7 @@
 
 COpencvPictuteDlg::COpencvPictuteDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(COpencvPictuteDlg::IDD, pParent)
+	, m_strFilePath(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -26,12 +27,14 @@ COpencvPictuteDlg::COpencvPictuteDlg(CWnd* pParent /*=NULL*/)
 void COpencvPictuteDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_FilePath, m_strFilePath);
 }
 
 BEGIN_MESSAGE_MAP(COpencvPictuteDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_RUN, &COpencvPictuteDlg::OnBnClickedRun)
+	ON_BN_CLICKED(IDC_BUTFILE, &COpencvPictuteDlg::OnBnClickedButfile)
 END_MESSAGE_MAP()
 
 
@@ -105,8 +108,8 @@ void COpencvPictuteDlg::OnBnClickedRun()
 	storage = cvCreateMemStorage(0);
 	cvNamedWindow("人脸识别", 1);
 
-	const char* filename = "1.jpg";
-	IplImage* image = cvLoadImage(filename, 1);
+	//const char* filename = m_strFilePath;
+	IplImage* image = cvLoadImage((char*)(_bstr_t)m_strFilePath, 1);
 	if (image)
 	{
 		detect_and_draw(image);
@@ -115,7 +118,7 @@ void COpencvPictuteDlg::OnBnClickedRun()
 	}
 
 	cvDestroyWindow("人脸识别");
-
+	this->ShowWindow(SW_SHOW);
 	return;
 
 }
@@ -170,4 +173,19 @@ void COpencvPictuteDlg::detect_and_draw(IplImage* img)
 	MessageBox(str);
 
 
+}
+
+
+void COpencvPictuteDlg::OnBnClickedButfile()
+{
+	DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+	LPCTSTR lpszFilter = L"JPEG文件(*.jpg)|*.jpg|BMP文件(*.bmp)|*.bmp|PNG文件(*.png)|*.png|所有文件(*.*)|*.*||";
+	CFileDialog FileDlg(TRUE, NULL, NULL, dwFlags, lpszFilter, AfxGetMainWnd());
+	//CString strPath , strText;
+	if (FileDlg.DoModal() == IDOK)
+	{
+		m_strFilePath = FileDlg.GetPathName();
+		UpdateData(false);
+
+	}
 }
